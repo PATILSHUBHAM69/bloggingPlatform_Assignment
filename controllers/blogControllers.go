@@ -142,3 +142,46 @@ func GetPostsByUserID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, posts)
 }
+
+func UpdateUserPostByID(c *gin.Context) {
+	// Initialize the database connection
+	db, err := database.InitDB()
+	if err != nil {
+		log.Printf("Error initializing the database: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+	defer db.Close()
+
+	var updateUserPost models.Article
+	err = c.BindJSON(&updateUserPost)
+	if err != nil {
+		log.Printf("Error in binding post data: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Check if the blog post with the specified ID exists in the database.
+	var existingPostID int
+	err = db.QueryRow("SELECT id FROM blogposts WHERE id=?", updateUserPost.ID).Scan(&existingPostID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Blog post not found"})
+			return
+		}
+		log.Printf("Error in checking post existence: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	// Define the SQL query for Update the blog post with the specified ID
+	query := `UPDATE blogposts SET title=?, content=? WHERE id=?`
+	_, err = db.Exec(query, updateUserPost.Title, updateUserPost.Content, updateUserPost.ID)
+	if err != nil {
+		log.Printf("Error in updating data: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User post updated successfully"})
+}
