@@ -11,5 +11,5 @@ func SetupBlogRoutes(r *gin.Engine) {
 	r.GET("/getAllBlogsposts", controllers.GetAllPosts)
 	r.GET("/getBlogpostByID/:userID", controllers.GetPostsByUserID)
 	r.PUT("/updateBlogpostByID", controllers.UpdateUserPostByID)
-	//r.DELETE("/deleteBlogpostByID", controllers.DeleteUserPost)
+	r.DELETE("/deleteBlogpostByID", controllers.DeleteUserPost)
 }

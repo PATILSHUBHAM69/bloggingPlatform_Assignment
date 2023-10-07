@@ -185,3 +185,37 @@ func UpdateUserPostByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "User post updated successfully"})
 }
+
+func DeleteUserPost(c *gin.Context) {
+	// Initialize the database connection
+	db, err := database.InitDB()
+	if err != nil {
+		log.Printf("Error initializing the database: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+	defer db.Close()
+
+	var deleteUserPost models.Article
+	err = c.BindJSON(&deleteUserPost)
+	if err != nil {
+		log.Printf("Error in binding post data: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// Define the SQL query for deleting specified post by id in the database
+	result, err := db.Exec("DELETE FROM blogposts WHERE id=?", deleteUserPost.ID)
+	if err != nil {
+		log.Printf("Error in deleting user post: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Blog post not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User post successfully deleted"})
+}
