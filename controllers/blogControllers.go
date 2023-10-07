@@ -51,3 +51,43 @@ func PostBlog(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Blog added successfully"})
 }
+
+func GetAllPosts(c *gin.Context) {
+	// Initialize the database connection
+	db, err := database.InitDB()
+	if err != nil {
+		log.Printf("Error initializing the database: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+	defer db.Close()
+
+	// Define the SQL query for retrieve all blog posts
+	rows, err := db.Query("SELECT * FROM blogposts")
+	if err != nil {
+		log.Printf("Error in retrieving blog posts data: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+	defer rows.Close()
+
+	var posts []models.Article
+	for rows.Next() {
+		var post models.Article
+		err = rows.Scan(&post.ID, &post.Title, &post.Content)
+		if err != nil {
+			log.Printf("Error in scanning data: %s", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
+		posts = append(posts, post)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("Error in retrieving rows: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, posts)
+}
