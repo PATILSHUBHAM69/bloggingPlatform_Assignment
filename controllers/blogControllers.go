@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -64,6 +65,56 @@ func GetAllPosts(c *gin.Context) {
 
 	// Define the SQL query for retrieve all blog posts
 	rows, err := db.Query("SELECT * FROM blogposts")
+	if err != nil {
+		log.Printf("Error in retrieving blog posts data: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+	defer rows.Close()
+
+	var posts []models.Article
+	for rows.Next() {
+		var post models.Article
+		err = rows.Scan(&post.ID, &post.Title, &post.Content)
+		if err != nil {
+			log.Printf("Error in scanning data: %s", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
+		posts = append(posts, post)
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Printf("Error in retrieving rows: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, posts)
+}
+
+func GetPostsByUserID(c *gin.Context) {
+	userIDStr := c.Param("userID")
+
+	// Parse the userIDStr to an integer
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		log.Printf("Error converting userID to int: %s", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	// Initialize the database connection
+	db, err := database.InitDB()
+	if err != nil {
+		log.Printf("Error initializing the database: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+	defer db.Close()
+
+	// Define the SQL query for retrieve blog posts by user ID
+	rows, err := db.Query("SELECT * FROM blogposts WHERE id=?", userID)
 	if err != nil {
 		log.Printf("Error in retrieving blog posts data: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
