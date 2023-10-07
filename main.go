@@ -12,6 +12,6 @@ func main() {
 
 	r := gin.Default()
 	database.InitDB()
-	routes.SetupRoutes(r)
+	routes.SetupBlogRoutes(r)
 	r.Run(":8080")
 }
