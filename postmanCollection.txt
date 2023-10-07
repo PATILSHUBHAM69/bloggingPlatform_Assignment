@@ -1,0 +1,20 @@
+
+
+
+- Retrieve a list of all blog posts. === http://localhost:8080/postNewBlog
+
+- Retrieve a specific blog post by ID. === http://localhost:8080/getAllBlogsposts
+
+- Create a new blog post. === http://localhost:8080/getBlogpostByID/7
+
+- Update an existing blog post. === http://localhost:8080/updateBlogpostByID
+
+- - Delete a blog post. === http://localhost:8080/deleteBlogpostByID
+
+
+ 
+
+
+
+
+
